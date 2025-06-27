@@ -8,16 +8,13 @@ timestamp=1747533734
 [ethernet]
 
 [ipv4]
-address1=192.168.100.99/24
+address1=192.168.199.199/24
 dns=8.8.8.8;
-gateway=192.168.100.90
+gateway=192.168.199.1
 method=manual
 
 [ipv6]
 addr-gen-mode=default
-method=disabled
+method=auto
 
 [proxy]
-~
-~
-~
