@@ -1,0 +1,9 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+#192.168.150.150	pohaaap
+192.168.150.150	gateway1.attilapohorai.com gateway1
+192.168.151.151	pohaaapcontroller.attilapohorai.com
+192.168.152.152	pohaaapexecution.attilapohorai.com
+192.168.153.153	pohaaapautomation.attilapohorai.com
+#127.0.0.1 redis7000 redis7001 redis7002 redis7003 redis7004 redis7005
+192.168.150.150	redis7000.attilapohorai.com
