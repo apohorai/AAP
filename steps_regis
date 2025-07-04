@@ -1,0 +1,31 @@
+export BASE=/var/lib/redis
+export PORTS=(7000 7001 7002 7003 7004 7005)
+
+for PORT in "${PORTS[@]}"; do
+  mkdir -p $BASE/$PORT
+  cat > $BASE/$PORT/redis.conf <<EOF
+port $PORT
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+dir $BASE/$PORT
+logfile "$BASE/$PORT/redis.log"
+daemonize yes
+bind 0.0.0.0
+protected-mode no
+EOF
+done
+
+for PORT in "${PORTS[@]}"; do
+  redis-server $BASE/$PORT/redis.conf
+done
+
+ps -ef | grep redis
+ss -tuln | grep 700
+
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+
