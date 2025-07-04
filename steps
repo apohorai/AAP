@@ -1,3 +1,191 @@
 sudo firewall-cmd --add-port=7000/tcp --permanent
 sudo firewall-cmd --add-port=5432/tcp --permanent
 sudo firewall-cmd --reload
+
+sudo dnf install redis
+
+sudo redis-server /home/apohorai/redis-cluster/7000/redis.conf --daemonize yes
+redis-benchmark  redis-check-aof  redis-check-rdb  redis-cli        redis-sentinel   redis-server     
+[apohorai@aapgw 7000]$ sudo redis-server /home/apohorai/redis-cluster/7000/redis.conf --daemonize yes
+[apohorai@aapgw 7000]$ sudo ss -ltnp | grep 7000
+LISTEN 0      511          0.0.0.0:7000      0.0.0.0:*    users:(("redis-server",pid=31332,fd=6))
+[apohorai@aapgw 7000]$ redis-cli -p 7000 ping
+PONG
+
+BASE=/home/apohorai/redis-cluster
+PORTS=(7000 7001 7002 7003 7004 7005)
+
+for PORT in "${PORTS[@]}"; do
+  mkdir -p $BASE/$PORT
+  cat > $BASE/$PORT/redis.conf <<EOF
+port $PORT
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+dir $BASE/$PORT
+logfile "$PORT.log"
+bind 0.0.0.0
+protected-mode no
+daemonize yes
+EOF
+done
+
+
+sudo chown -R $(whoami) /home/apohorai/redis-cluster
+
+for PORT in "${PORTS[@]}"; do
+  redis-server $BASE/$PORT/redis.conf
+done
+
+for PORT in "${PORTS[@]}"; do
+  redis-cli -p $PORT ping
+done
+
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+
+PONG
+[apohorai@aapgw redis-cluster]$ redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+[ERR] Node 127.0.0.1:7000 is not configured as a cluster node.
+[apohorai@aapgw redis-cluster]$ 
+
+**********************
+✅ Redis Cluster Setup Cheat Sheet
+1. Install Redis
+Make sure Redis ≥ 6 is installed on the host:
+
+bash
+Copy
+Edit
+sudo dnf install redis -y   # Or use pacman/yum/apt as appropriate
+2. Create Cluster Directory Layout
+bash
+Copy
+Edit
+export BASE=/home/apohorai/redis-cluster
+export PORTS=(7000 7001 7002 7003 7004 7005)
+
+for PORT in "${PORTS[@]}"; do
+  mkdir -p $BASE/$PORT
+  cat > $BASE/$PORT/redis.conf <<EOF
+port $PORT
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+dir $BASE/$PORT
+logfile "$PORT.log"
+bind 0.0.0.0
+protected-mode no
+daemonize yes
+EOF
+done
+3. Start All Redis Instances
+bash
+Copy
+Edit
+for PORT in "${PORTS[@]}"; do
+  redis-server $BASE/$PORT/redis.conf
+done
+Verify:
+
+bash
+Copy
+Edit
+for PORT in "${PORTS[@]}"; do
+  redis-cli -p $PORT ping
+done
+All should return PONG.
+
+4. Create Redis Cluster
+Run:
+
+bash
+Copy
+Edit
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1 --cluster-yes
+5. Verify Cluster Health
+bash
+Copy
+Edit
+redis-cli -p 7000 cluster info
+redis-cli -c -p 7000 cluster nodes
+6. Allow Firewall Ports (if using firewalld)
+bash
+Copy
+Edit
+sudo firewall-cmd --add-port=7000-7005/tcp --permanent
+sudo firewall-cmd --reload
+
+********************************
+TO DO
+7. (Optional) Make Redis Instances Persistent via systemd
+For each instance, create /etc/systemd/system/redis7000.service (adjust for each port):
+
+ini
+Copy
+Edit
+[Unit]
+Description=Redis instance on port 7000
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/redis-server /home/apohorai/redis-cluster/7000/redis.conf
+ExecStop=/usr/bin/redis-cli -p 7000 shutdown
+User=apohorai
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Then:
+
+bash
+Copy
+Edit
+sudo systemctl daemon-reload
+sudo systemctl enable redis7000
+sudo systemctl start redis7000
+Repeat for 7001 through 7005.
+
+*******************************
+as root as new
+BASE=/var/lib/redis-cluster
+for PORT in {7000..7005}; do
+  sudo mkdir -p $BASE/$PORT
+done
+
+export BASE=/var/lib/redis
+[root@aapgw redis]# export BASE=/var/lib/redis
+[root@aapgw redis]# export PORTS=(7000 7001 7002 7003 7004 7005)
+[root@aapgw redis]# export BASE=/var/lib/redis
+export PORTS=(7000 7001 7002 7003 7004 7005)
+
+for PORT in "${PORTS[@]}"; do
+  mkdir -p "$BASE/$PORT"
+  cat > "$BASE/$PORT/redis.conf" <<EOF
+port $PORT
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+dir $BASE/$PORT
+logfile "$PORT.log"
+EOF
+done
+[root@aapgw redis]# ls
+
+
+
+
+
+
+
