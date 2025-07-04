@@ -1,0 +1,78 @@
+# This is the AAP enterprise installer inventory file
+# Please consult the docs if you're unsure what to add
+# For all optional variables please consult the Red Hat documentation:
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation
+
+# This section is for your AAP Gateway host(s)
+# -----------------------------------------------------
+[automationgateway]
+aapgw.poha.local registry_username=attila.pohorai registry_password=Compaq55667788_ ansible_connection=local
+
+# This section is for your AAP Controller host(s)
+# -----------------------------------------------------
+[automationcontroller]
+aapco.poha.local ansible_user=root ansible_ssh_pass=timike55 registry_username=attila.pohorai registry_password=Compaq55667788_
+
+[automationcontroller:vars]
+peers=execution_nodes
+
+# This section is for your AAP Execution host(s)
+# -----------------------------------------------------
+[execution_nodes]
+aapex.poha.local ansible_user=root ansible_ssh_pass=timike55 registry_username=attila.pohorai registry_password=Compaq55667788_
+
+# This section is for your AAP Automation Hub host(s)
+# -----------------------------------------------------
+[automationhub]
+aapau.poha.local ansible_user=root ansible_ssh_pass=timike55 registry_username=attila.pohorai registry_password=Compaq55667788_
+
+# This section is for your AAP EDA Controller host(s)
+# -----------------------------------------------------
+[automationedacontroller]
+aapau.poha.local ansible_user=root ansible_ssh_pass=timike55 registry_username=attila.pohorai registry_password=Compaq55667788_
+
+[redis]
+redis7000 aapre.poha.local ansible_connection=ssh ansible_user=root redis_port=7000
+
+# Common variables
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation/appendix-inventory-files-vars#ref-general-inventory-variables
+# -----------------------------------------------------
+[all:vars]
+redis_mode=standalone
+gather_facts=true
+admin_password=timike55
+
+# AAP Gateway
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation/appendix-inventory-files-vars#ref-gateway-variables
+# -----------------------------------------------------
+automationgateway_admin_password=timike55
+automationgateway_pg_host=aapdb.poha.local
+automationgateway_pg_database=pohapg_gateway
+automationgateway_pg_username=apohorai
+automationgateway_pg_password=timike55
+
+# AAP Controller
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation/appendix-inventory-files-vars#ref-controller-variables
+# -----------------------------------------------------
+pg_host=aapdb.poha.local
+pg_database=pohapg_controller
+pg_username=apohorai
+pg_password=timike55
+
+# AAP Automation Hub
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation/appendix-inventory-files-vars#ref-hub-variables
+# -----------------------------------------------------
+automationhub_admin_password=timike55
+automationhub_pg_host=aapdb.poha.local
+automationhub_pg_database=pohapg_automationhub
+automationhub_pg_username=apohorai
+automationhub_pg_password=timike55
+
+# AAP EDA Controller
+# https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/rpm_installation/appendix-inventory-files-vars#event-driven-ansible-controller
+# -----------------------------------------------------
+automationedacontroller_admin_password=timike55
+automationedacontroller_pg_host=aapdb.poha.local
+automationedacontroller_pg_database=pohapg_mediacontroller
+automationedacontroller_pg_username=apohorai
+automationedacontroller_pg_password=timike55
