@@ -29,3 +29,68 @@ redis-cli --cluster create \
   127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
   --cluster-replicas 1
 
+************clean
+for PORT in 7000 7001 7002 7003 7004 7005; do
+  pkill -f "redis-server.*:$PORT"
+done
+
+export BASE=/var/lib/redis
+for PORT in 7000 7001 7002 7003 7004 7005; do
+  rm -f $BASE/$PORT/nodes.conf $BASE/$PORT/appendonly.aof $BASE/$PORT/dump.rdb
+done
+
+for PORT in 7000 7001 7002 7003 7004 7005; do
+  redis-server $BASE/$PORT/redis.conf
+done
+
+
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+
+Step-by-step Fix:
+bash
+Copy
+Edit
+export BASE=/var/lib/redis
+export PORTS=(7000 7001 7002 7003 7004 7005)
+
+# Stop Redis instances
+for PORT in "${PORTS[@]}"; do
+  pkill -f "redis-server.*:$PORT"
+done
+
+# Wipe nodes.conf and AOF files
+for PORT in "${PORTS[@]}"; do
+  rm -f $BASE/$PORT/nodes.conf
+  rm -f $BASE/$PORT/appendonly.aof
+done
+✅ Restart Redis cleanly:
+bash
+Copy
+Edit
+for PORT in "${PORTS[@]}"; do
+  redis-server $BASE/$PORT/redis.conf
+done
+Give it a few seconds (sleep 2), then:
+
+✅ Try cluster creation again:
+bash
+Copy
+Edit
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+You should now see prompts to confirm — type yes.
+
+✅ Bonus: Verify the cluster
+Run this to inspect the nodes:
+
+bash
+Copy
+Edit
+redis-cli -p 7000 cluster nodes
+
+
